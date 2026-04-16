@@ -112,38 +112,38 @@ function buildMinimizedDFA(dfa, partitions) {
 function generateGraph(dfa) {
     const edgeMap = {};
 
-const { states, alphabet, transitions } = dfa;
+    const { states, alphabet, transitions } = dfa;
 
-states.forEach((from) => {
-  alphabet.forEach((symbol) => {
-    const to = transitions[from]?.[symbol];
-    if (!to) return;
+    states.forEach((from) => {
+        alphabet.forEach((symbol) => {
+            const to = transitions[from]?.[symbol];
+            if (!to) return;
 
-    const key = `${from}-${to}`;
-    if (!edgeMap[key]) {
-      edgeMap[key] = [];
-    }
-    edgeMap[key].push(symbol);
-  });
-});
+            const key = `${from}-${to}`;
+            if (!edgeMap[key]) {
+                edgeMap[key] = [];
+            }
+            edgeMap[key].push(symbol);
+        });
+    });
 
-const edges = Object.entries(edgeMap).map(([key, symbols]) => {
-  const [from, to] = key.split("-");
-  return {
-    data: {
-      source: from,
-      target: to,
-      label: symbols.join(", "),
-    },
-  };
-});
+    const edges = Object.entries(edgeMap).map(([key, symbols]) => {
+        const [from, to] = key.split("-");
+        return {
+            data: {
+                source: from,
+                target: to,
+                label: symbols.join(", "),
+            },
+        };
+    });
 
-// 👇 THIS MUST BE OUTSIDE
-const nodes = states.map((s) => ({
-  data: { id: s },
-}));
+    // 👇 THIS MUST BE OUTSIDE
+    const nodes = states.map((s) => ({
+        data: { id: s },
+    }));
 
-return [...nodes, ...edges];
+    return [...nodes, ...edges];
 }
 
 export default function App() {
@@ -237,18 +237,19 @@ export default function App() {
         {
             selector: "edge",
             style: {
-                label: "data(label)",
                 "curve-style": "bezier",
+                "control-point-step-size": 80, // 👈 IMPORTANT (increase spacing)
                 "target-arrow-shape": "triangle",
-                "line-color": dark ? "#94a3b8" : "#475569",
-                "target-arrow-color": dark ? "#94a3b8" : "#475569",
-                color: dark ? "#e2e8f0" : "#1e293b",
-                "font-size": 12,
-                "text-background-color": dark ? "#1e293b" : "#f1f5f9",
+                "line-color": "#94a3b8",
+                "target-arrow-color": "#94a3b8",
+                "label": "data(label)",
+                "font-size": "12px",
+                "text-background-color": "#0f172a",
                 "text-background-opacity": 1,
-                "text-background-padding": "2px",
-            },
-        },
+                "text-background-padding": "3px",
+                "color": "#fff",
+            }
+        }
     ];
 
     return (
@@ -409,7 +410,7 @@ export default function App() {
                     ) : (
                         <CytoscapeComponent
                             elements={graph}
-                            layout={{ name: "circle" }}
+                            layout={{ name: "cose",animate: true,padding: 50}}
                             style={{ width: "100%", height: "320px" }}
                             stylesheet={cytoscapeStylesheet}
                         />
