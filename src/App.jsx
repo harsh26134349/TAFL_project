@@ -104,6 +104,7 @@ function buildMinimizedDFA(dfa, partitions) {
 
     return {
         states: Object.keys(newTransitions),
+        alphabet, // ✅ FIX 1: Passed the alphabet down so generateGraph works
         transitions: newTransitions,
         accept: newAccept,
     };
@@ -575,12 +576,19 @@ export default function App() {
                                     </div>
                                 )}
 
-                                <CytoscapeComponent
-                                    elements={finalGraph}
-                                    layout={graphLayout}
-                                    style={{ width: "100%", height: "320px" }}
-                                    stylesheet={cytoscapeStylesheet}
-                                />
+                                {/* ✅ FIX 2: Safe render check for finalGraph */}
+                                {finalGraph.length === 0 ? (
+                                    <div className="text-sm opacity-40">
+                                        Generating minimized graph...
+                                    </div>
+                                ) : (
+                                    <CytoscapeComponent
+                                        elements={finalGraph}
+                                        layout={graphLayout}
+                                        style={{ width: "100%", height: "320px" }}
+                                        stylesheet={cytoscapeStylesheet}
+                                    />
+                                )}
                             </div>
                         )}
 
