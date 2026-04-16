@@ -1,1 +1,0 @@
-export function minimizeDFA(dfa){ return [{title:'Demo Step', partitions:[dfa.states], explanation:'Demo', isFinal:true}]; }
