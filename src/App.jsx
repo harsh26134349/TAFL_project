@@ -110,24 +110,40 @@ function buildMinimizedDFA(dfa, partitions) {
 }
 
 function generateGraph(dfa) {
-    const { states, transitions, accept = [] } = dfa;
-    let elements = [];
+    const edgeMap = {};
 
-    states.forEach((s) => {
-        elements.push({
-            data: { id: s, label: s },
-            classes: accept.includes(s) ? "final" : "normal",
-        });
-    });
+const { states, alphabet, transitions } = dfa;
 
-    states.forEach((s) => {
-        Object.entries(transitions[s] || {}).forEach(([symbol, target]) => {
-            if (!target) return;
-            elements.push({ data: { source: s, target: target, label: symbol } });
-        });
-    });
+states.forEach((from) => {
+  alphabet.forEach((symbol) => {
+    const to = transitions[from]?.[symbol];
+    if (!to) return;
 
-    return elements;
+    const key = `${from}-${to}`;
+    if (!edgeMap[key]) {
+      edgeMap[key] = [];
+    }
+    edgeMap[key].push(symbol);
+  });
+});
+
+const edges = Object.entries(edgeMap).map(([key, symbols]) => {
+  const [from, to] = key.split("-");
+  return {
+    data: {
+      source: from,
+      target: to,
+      label: symbols.join(", "),
+    },
+  };
+});
+
+// 👇 THIS MUST BE OUTSIDE
+const nodes = states.map((s) => ({
+  data: { id: s },
+}));
+
+return [...nodes, ...edges];
 }
 
 export default function App() {
