@@ -405,7 +405,7 @@ export default function App() {
             {/* STEP-BY-STEP SLIDES */}
             {steps.length > 0 && (
                 <div className="px-6 pb-10">
-                    <div className={`${dark ? "bg-white/5 text-white" : "bg-white text-slate-800"} p-6 rounded-2xl shadow-xl`}>
+                    <div className={`${dark ? "bg-white/5 text-white" : "bg-white text-slate-800"} p-6 rounded-2xl shadow-xl backdrop-blur-md border border-white/10`}>
 
                         {/* HEADER */}
                         <div className="flex justify-between items-center mb-4">
@@ -413,30 +413,56 @@ export default function App() {
                                 Step {stepIndex + 1} / {steps.length}
                             </h2>
 
-                            <div className="flex gap-2">
+                            <div className="flex justify-center items-center gap-6 mt-4">
+
+                                {/* LEFT */}
                                 <button
                                     onClick={() => setStepIndex(Math.max(0, stepIndex - 1))}
-                                    className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition"
                                 >
                                     ◀
                                 </button>
 
+                                {/* PLAY / PAUSE */}
                                 <button
                                     onClick={() => setPlaying(!playing)}
-                                    className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg transition text-white"
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 shadow-lg hover:scale-105 transition"
                                 >
-                                    {playing ? "Pause" : "Play"}
+                                    {playing ? (
+                                        // Pause icon
+                                        <div className="flex gap-1">
+                                            <span className="w-1.5 h-5 bg-white rounded"></span>
+                                            <span className="w-1.5 h-5 bg-white rounded"></span>
+                                        </div>
+                                    ) : (
+                                        // Play icon (triangle)
+                                        <div className="w-0 h-0 border-l-[10px] border-l-white border-y-[7px] border-y-transparent ml-1"></div>
+                                    )}
                                 </button>
 
+                                {/* RIGHT */}
                                 <button
                                     onClick={() =>
                                         setStepIndex(Math.min(steps.length - 1, stepIndex + 1))
                                     }
-                                    className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition"
                                 >
                                     ▶
                                 </button>
+
                             </div>
+                        </div>
+                        {/* STEP CONTENT */}
+                        <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 animate-fadeIn">
+
+                            <h3 className="text-lg font-semibold text-indigo-300 mb-2">
+                                {steps[stepIndex].title}
+                            </h3>
+
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                                {steps[stepIndex].explanation}
+                            </p>
+
                         </div>
 
                         {/* TITLE */}
