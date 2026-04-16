@@ -25,7 +25,9 @@ function minimizeDFA(dfa) {
     changed = false;
     let newP = [];
 
-    for (let group of P) {
+    const currentP = [...P]; // ✅ FIX
+
+    for (let group of currentP) {
       let map = {};
 
       for (let state of group) {
@@ -33,7 +35,7 @@ function minimizeDFA(dfa) {
           .map((a) => {
             let next = transitions[state]?.[a];
             if (!next) return -1;
-            return P.findIndex((g) => g.includes(next));
+            return currentP.findIndex((g) => g.includes(next)); // ✅ FIX
           })
           .join("-");
 
@@ -184,7 +186,6 @@ export default function App() {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(3000);
 
-  // Auto-play timer
   useEffect(() => {
     if (!playing || steps.length === 0) return;
     const timer = setTimeout(() => {
@@ -197,13 +198,11 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [playing, stepIndex, speed, steps.length]);
 
-  // Sync states list
   useEffect(() => {
     const s = Array.from({ length: numStates }, (_, i) => `q${i}`);
     setStates(s);
   }, [numStates]);
 
-  // Sync alphabet
   useEffect(() => {
     const a = alphabetInput
       .split(",")
@@ -212,7 +211,6 @@ export default function App() {
     setAlphabet(a);
   }, [alphabetInput]);
 
-  // Sync transition table
   useEffect(() => {
     let t = {};
     states.forEach((st) => {
@@ -222,7 +220,6 @@ export default function App() {
       });
     });
     setTransitions(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [states, alphabet]);
 
   const handleRun = () => {
@@ -242,317 +239,46 @@ export default function App() {
   const stylesheet = getCytoscapeStylesheet(dark);
 
   return (
-    <div
-      className={`${
-        dark ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-900"
-      } min-h-screen`}
-    >
-      {/* HEADER */}
+    <div className={`${dark ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-900"} min-h-screen`}>
       <div className="flex justify-between items-center p-4">
         <h1 className="text-2xl font-bold">DFA Visualizer</h1>
-        <button
-          onClick={() => setDark(!dark)}
-          className="p-2 rounded-full bg-white/10"
-        >
+        <button onClick={() => setDark(!dark)} className="p-2 rounded-full bg-white/10">
           {dark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
       </div>
 
-      {/* MAIN GRID */}
       <div className="grid grid-cols-2 gap-6 p-6">
-        {/* LEFT PANEL — Input */}
-        <div
-          className={`${
-            dark
-              ? "bg-white/5 text-white"
-              : "bg-white text-slate-800"
-          } p-6 rounded-xl shadow`}
-        >
-          <label className="block text-sm opacity-70 mb-1">
-            Number of States (max 15)
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={15}
-            value={numStates}
-            onChange={(e) =>
-              setNumStates(Math.min(15, Number(e.target.value)))
-            }
-            className={`w-full mb-3 p-2 rounded ${
-              dark
-                ? "bg-white/10 text-white"
-                : "bg-slate-100 text-slate-800"
-            }`}
-          />
-
-          <label className="block text-sm opacity-70 mb-1">
-            Alphabet (comma-separated, e.g. 0,1)
-          </label>
-          <input
-            value={alphabetInput}
-            onChange={(e) => setAlphabetInput(e.target.value)}
-            className={`w-full mb-4 p-2 rounded ${
-              dark
-                ? "bg-white/10 text-white"
-                : "bg-slate-100 text-slate-800"
-            }`}
-          />
-
-          <p className="text-sm opacity-70 mb-2">
-            Transition Table{" "}
-            <span className="text-xs opacity-50">
-              (state → symbol → next state)
-            </span>
-          </p>
-
-          {/* Column headers */}
-          {alphabet.length > 0 && (
-            <div className="flex items-center gap-2 mb-1 text-xs opacity-50">
-              <span className="w-8">State</span>
-              {alphabet.map((a) => (
-                <span key={a} className="px-2">
-                  on '{a}'
-                </span>
-              ))}
-            </div>
-          )}
+        <div className={`${dark ? "bg-white/5 text-white" : "bg-white text-slate-800"} p-6 rounded-xl shadow`}>
+          <input type="number" value={numStates} onChange={(e) => setNumStates(Math.min(15, Number(e.target.value)))} className="w-full mb-3 p-2 rounded" />
+          <input value={alphabetInput} onChange={(e) => setAlphabetInput(e.target.value)} className="w-full mb-4 p-2 rounded" />
 
           {states.map((s) => (
-            <div key={s} className="flex items-center gap-2 mb-2">
-              <span className="w-8 font-mono text-sm">{s}</span>
+            <div key={s}>
               {alphabet.map((a) => (
-                <select
-                  key={a}
-                  value={transitions[s]?.[a] || ""}
-                  onChange={(e) =>
-                    setTransitions((prev) => ({
-                      ...prev,
-                      [s]: { ...prev[s], [a]: e.target.value },
-                    }))
-                  }
-                  className={`p-1 rounded text-sm ${
-                    dark
-                      ? "bg-slate-800 text-white"
-                      : "bg-slate-200 text-slate-800"
-                  }`}
-                >
+                <select key={a} value={transitions[s]?.[a] || ""} onChange={(e) =>
+                  setTransitions((prev) => ({
+                    ...prev,
+                    [s]: { ...prev[s], [a]: e.target.value },
+                  }))
+                }>
                   <option value="">-</option>
                   {states.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
+                    <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
               ))}
             </div>
           ))}
 
-          {/* Final States */}
-          <div className="mt-4">
-            <p className="text-sm mb-2 opacity-80">Final / Accepting States</p>
-            <div className="flex gap-3 flex-wrap">
-              {states.map((s) => (
-                <label
-                  key={s}
-                  className="flex items-center gap-1 text-sm cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={finalStates.includes(s)}
-                    onChange={() =>
-                      setFinalStates((prev) =>
-                        prev.includes(s)
-                          ? prev.filter((x) => x !== s)
-                          : [...prev, s]
-                      )
-                    }
-                  />
-                  {s}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={handleRun}
-            className="mt-4 w-full bg-indigo-500 hover:bg-indigo-600 transition-colors py-2 rounded font-semibold"
-          >
+          <button onClick={handleRun} className="mt-4 w-full bg-indigo-500 py-2 rounded">
             Run Minimization
           </button>
         </div>
 
-        {/* RIGHT PANEL — Initial DFA Graph */}
-        <div
-          className={`${
-            dark ? "bg-white/5" : "bg-white"
-          } rounded-xl p-4 shadow`}
-        >
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-semibold opacity-70">
-              Initial DFA Graph
-            </h3>
-            <span className="text-xs opacity-50">Layout: circle</span>
-          </div>
-          {graph.length === 0 ? (
-            <div className="text-sm opacity-50 mt-8 text-center">
-              Configure the DFA and click <strong>Run</strong> to generate the
-              graph.
-            </div>
-          ) : (
-            <CytoscapeComponent
-              elements={graph}
-              layout={{ name: "circle" }}
-              style={{ width: "100%", height: "300px" }}
-              stylesheet={stylesheet}
-            />
-          )}
+        <div className={`${dark ? "bg-white/5" : "bg-white"} rounded-xl p-4 shadow`}>
+          <CytoscapeComponent elements={graph} layout={{ name: "circle" }} style={{ width: "100%", height: "300px" }} stylesheet={stylesheet} />
         </div>
       </div>
-
-      {/* STEP-BY-STEP SLIDES */}
-      {steps.length > 0 && (
-        <div className="px-6 pb-10">
-          <div
-            className={`${
-              dark
-                ? "bg-white/5 text-white"
-                : "bg-white text-slate-800"
-            } p-6 rounded-xl min-h-[500px] shadow`}
-          >
-            {/* Controls */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setPlaying(!playing)}
-                  className="bg-orange-500 hover:bg-orange-600 transition-colors text-white px-4 py-2 rounded font-semibold"
-                >
-                  {playing ? "Pause" : "Play"}
-                </button>
-
-                <select
-                  value={speed}
-                  onChange={(e) => setSpeed(Number(e.target.value))}
-                  className="p-2 rounded bg-slate-200 text-black text-sm"
-                >
-                  <option value={1000}>Fast (1s)</option>
-                  <option value={3000}>Normal (3s)</option>
-                  <option value={5000}>Slow (5s)</option>
-                </select>
-              </div>
-
-              <div className="text-sm opacity-70">
-                Step {stepIndex + 1} of {steps.length}
-              </div>
-            </div>
-
-            {/* Step Title */}
-            <h2 className="text-xl font-bold mb-1">
-              {steps[stepIndex].title}
-              <span className="ml-2 text-xs font-normal opacity-40">
-                teaching mode
-              </span>
-            </h2>
-
-            {/* Explanation */}
-            <p
-              className={`mb-5 text-sm leading-relaxed ${
-                dark ? "opacity-80" : "text-slate-600"
-              }`}
-            >
-              {steps[stepIndex].explanation}
-            </p>
-
-            {/* Partition Groups */}
-            <div className="mb-4">
-              {steps[stepIndex].partitions.map((group, i) => (
-                <div
-                  key={i}
-                  className={`${
-                    dark ? "bg-white/10" : "bg-slate-100"
-                  } mb-3 p-3 rounded`}
-                >
-                  <strong className="block mb-1 text-sm">Group G{i}:</strong>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {group.map((s) => (
-                      <span
-                        key={s}
-                        className="px-2 py-1 rounded bg-indigo-500/20 text-xs font-mono"
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="text-xs opacity-60">
-                    <span className="font-semibold">Transitions:</span>
-                    {group.map((state) => (
-                      <div key={state} className="font-mono">
-                        {state} →{" "}
-                        {alphabet
-                          .map(
-                            (a) =>
-                              `${a}: ${transitions[state]?.[a] || "∅"}`
-                          )
-                          .join(", ")}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Final Step: Minimized DFA Graph */}
-            {steps[stepIndex].isFinal && (
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold">Minimized DFA Graph</h3>
-                  <span className="text-xs opacity-50">Layout: circle</span>
-                </div>
-
-                {steps[stepIndex].partitions.length === states.length && (
-                  <div className="mb-3 p-3 rounded bg-green-500/20 text-green-300 text-sm">
-                    ✅ Your DFA is already minimized. No equivalent states were
-                    found.
-                  </div>
-                )}
-
-                <CytoscapeComponent
-                  elements={finalGraph}
-                  layout={{ name: "circle" }}
-                  style={{ width: "100%", height: "320px" }}
-                  stylesheet={stylesheet}
-                />
-              </div>
-            )}
-
-            {/* Navigation */}
-            <div className="flex justify-between mt-6">
-              <button
-                onClick={() =>
-                  setStepIndex((prev) => Math.max(0, prev - 1))
-                }
-                disabled={stepIndex === 0}
-                className="p-2 rounded hover:bg-white/10 disabled:opacity-30 transition"
-              >
-                <ChevronLeft />
-              </button>
-
-              <button
-                onClick={() =>
-                  setStepIndex((prev) =>
-                    Math.min(steps.length - 1, prev + 1)
-                  )
-                }
-                disabled={stepIndex === steps.length - 1}
-                className="p-2 rounded hover:bg-white/10 disabled:opacity-30 transition"
-              >
-                <ChevronRight />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
