@@ -7,13 +7,25 @@ function minimizeDFA(dfa) {
     const { states, alphabet, transitions, accept } = dfa;
 
     let steps = [];
-    let P = [accept, states.filter(s => !accept.includes(s))].filter(g => g.length);
+    let P = [accept, states.filter((s) => !accept.includes(s))].filter(
+        (g) => g.length
+    );
+
+    const finalStr = accept.join(", ") || "none";
+    const nonFinalStr = states.filter((s) => !accept.includes(s)).join(", ") || "none";
 
     steps.push({
         title: "Step 1: Initial Partition",
         partitions: JSON.parse(JSON.stringify(P)),
-        explanation:
-            "We first divide states into FINAL and NON-FINAL groups. This is always the starting point because accepting behavior must match.",
+        explanation: 
+            "We begin by dividing all states into two groups:\n\n" +
+            "• FINAL states (accepting states)\n" +
+            "• NON-FINAL states (non-accepting states)\n\n" +
+            "Reason:\n" +
+            "States in different categories cannot be equivalent because they differ in acceptance behavior.\n\n" +
+            "Example:\n" +
+            `Final = { ${finalStr} }\n` +
+            `Non-final = { ${nonFinalStr} }`,
     });
 
     let iteration = 2;
@@ -43,9 +55,16 @@ function minimizeDFA(dfa) {
 
             if (splitGroups.length > 1) {
                 steps.push({
-                    title: `Step ${iteration}: Splitting Group`,
+                    title: `Step ${iteration}: Refinement of Partitions`,
                     partitions: JSON.parse(JSON.stringify(splitGroups)),
-                    explanation: `We examine group [${group.join(", ")}]. Some states behave differently on inputs, so we split them into smaller groups based on their transition targets.`,
+                    explanation: 
+                        "We now check whether states in the same group behave similarly.\n\n" +
+                        "For each state:\n" +
+                        "• Check transitions for each input symbol\n" +
+                        "• See which group the transition leads to\n\n" +
+                        "If two states go to different groups → they are NOT equivalent.\n\n" +
+                        "So we split the group.\n\n" +
+                        `Since transitions differ for states in { ${group.join(", ")} } → split them.`,
                 });
                 iteration++;
                 changed = true;
@@ -56,10 +75,16 @@ function minimizeDFA(dfa) {
 
         if (changed) {
             steps.push({
-                title: `Step ${iteration}: Updated Partition`,
+                title: `Step ${iteration}: Iterative Splitting`,
                 partitions: JSON.parse(JSON.stringify(newP)),
-                explanation:
-                    "After splitting inconsistent states, we update our groups. Now states inside each group behave more similarly.",
+                explanation: 
+                    "Repeat the refinement process:\n\n" +
+                    "• Compare transitions again\n" +
+                    "• Split groups if needed\n\n" +
+                    "Stop when:\n" +
+                    "No more splits are possible\n\n" +
+                    "At this point:\n" +
+                    "All states inside a group are equivalent",
             });
             iteration++;
         }
@@ -67,11 +92,26 @@ function minimizeDFA(dfa) {
         P = newP;
     }
 
+    const isAlreadyMinimal = P.length === states.length;
+    const mappedGroups = P.map((g, i) => `• G${i} → new state`).join("\n");
+
     steps.push({
-        title: `Step ${iteration}: Final Minimized DFA`,
+        title: `Step ${iteration}: Construct Minimized DFA & Final Result`,
         partitions: JSON.parse(JSON.stringify(P)),
-        explanation:
-            "No more splits are possible. Each group now represents one state in the minimized DFA.",
+        explanation: 
+            "Each group becomes a single state:\n\n" +
+            mappedGroups + "\n\n" +
+            "Transitions:\n" +
+            "Use any representative from the group\n\n" +
+            "Final states:\n" +
+            "If ANY state in group is final → group is final\n\n" +
+            "Start state:\n" +
+            "Group containing original start state\n\n" +
+            "The minimized DFA:\n" +
+            "• Has fewer or equal states\n" +
+            "• Preserves language\n" +
+            "• Removes redundant states\n\n" +
+            (isAlreadyMinimal ? "If no merges occurred:\n→ DFA is already minimal" : ""),
         isFinal: true,
     });
 
@@ -104,7 +144,7 @@ function buildMinimizedDFA(dfa, partitions) {
 
     return {
         states: Object.keys(newTransitions),
-        alphabet, // ✅ FIX 1: Passed the alphabet down so generateGraph works
+        alphabet, 
         transitions: newTransitions,
         accept: newAccept,
     };
@@ -153,11 +193,10 @@ function generateGraph(dfa) {
     const startEdge = {
         data: {
             source: "__start__",
-            target: states.length ? states[0] : null,
+            target: states[0], // 🔥 safe (we already checked length)
         },
         classes: "start-edge",
     };
-
     return [startNode, ...nodes, startEdge, ...edges];
 }
 
@@ -285,10 +324,12 @@ export default function App() {
                 "line-color": "#94a3b8",
                 "target-arrow-color": "#94a3b8",
                 "label": "data(label)",
-                "font-size": "12px",
+                "color": "#ffffff", 
+                "font-size": "14px",
                 "text-background-color": "#0f172a",
                 "text-background-opacity": 1,
-                "text-background-padding": "2px",
+                "text-background-padding": "3px",
+                "text-rotation": "autorotate",
             },
         },
     ];
@@ -524,7 +565,8 @@ export default function App() {
                                 {steps[stepIndex].title}
                             </h3>
 
-                            <p className="text-sm text-gray-300 leading-relaxed">
+                            {/* ✅ ADDED whitespace-pre-wrap SO YOUR BULLET POINTS RENDER CORRECTLY! */}
+                            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
                                 {steps[stepIndex].explanation}
                             </p>
 
