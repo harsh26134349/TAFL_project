@@ -20,11 +20,11 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31, 38, 135, 0.07)] rounded-2xl;
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] rounded-2xl;
   }
 
   .glass-panel-dark {
-    @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0, 0, 0, 0.3)] rounded-2xl;
+    @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl;
   }
 
   .glass-input {
